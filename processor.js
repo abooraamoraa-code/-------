@@ -1,8 +1,9 @@
+```javascript
 /*
 ============================================================
 NOVA CUT
 PROCESSOR.JS
-مسؤول عن معالجة الفيديو
+Video processing and cutting engine
 ============================================================
 */
 
@@ -14,17 +15,16 @@ import {
 
 /*
 ============================================================
-إعدادات عامة
+Configuration
 ============================================================
 */
 
-const DEFAULT_OUTPUT_NAME =
-  "nova-cut.mp4";
+const OUTPUT_FILE_NAME = "nova-cut-output.mp4";
 
 
 /*
 ============================================================
-دالة معالجة الفيديو الرئيسية
+MAIN VIDEO PROCESSOR
 ============================================================
 */
 
@@ -35,198 +35,240 @@ export async function processVideo(
   onProgress = function () {}
 ) {
 
+  let ffmpeg = null;
+
+  let inputName = "";
+  let outputName = OUTPUT_FILE_NAME;
+
+  let logHandler = null;
+  let progressHandler = null;
+
+  let lastLog = "";
+
+
   /*
-  ----------------------------------------------------------
-  التحقق من الملف
-  ----------------------------------------------------------
+  ------------------------------------------------------------
+  Validate video
+  ------------------------------------------------------------
   */
 
   if (!videoFile) {
-
-    throw new Error(
-      "لم يتم اختيار فيديو."
-    );
-
+    throw new Error("No video file selected.");
   }
 
 
   /*
-  ----------------------------------------------------------
-  التحقق من الأوقات
-  ----------------------------------------------------------
+  ------------------------------------------------------------
+  Convert times
+  ------------------------------------------------------------
   */
 
-  const start =
-    Number(startTime);
+  const start = Number(startTime);
+  const end = Number(endTime);
 
-  const end =
-    Number(endTime);
+
+  /*
+  ------------------------------------------------------------
+  Validate times
+  ------------------------------------------------------------
+  */
 
   if (
     !Number.isFinite(start) ||
     !Number.isFinite(end)
   ) {
-
-    throw new Error(
-      "وقت البداية أو النهاية غير صحيح."
-    );
-
+    throw new Error("Invalid start or end time.");
   }
 
 
   if (start < 0) {
-
-    throw new Error(
-      "وقت البداية لا يمكن أن يكون سالبًا."
-    );
-
+    throw new Error("Start time cannot be negative.");
   }
 
 
   if (end <= start) {
-
     throw new Error(
-      "وقت النهاية يجب أن يكون بعد وقت البداية."
+      "End time must be greater than start time."
     );
-
   }
 
 
-  const duration =
-    end - start;
+  const duration = end - start;
 
 
   if (duration <= 0) {
-
-    throw new Error(
-      "مدة الفيديو المحددة غير صحيحة."
-    );
-
+    throw new Error("Invalid selected duration.");
   }
 
 
-  /*
-  ----------------------------------------------------------
-  بداية المعالجة
-  ----------------------------------------------------------
-  */
+  try {
 
-  onProgress(
-    2,
-    "جاري تشغيل محرك معالجة الفيديو..."
-  );
+    /*
+    ----------------------------------------------------------
+    Start
+    ----------------------------------------------------------
+    */
+
+    onProgress(
+      2,
+      "Loading video engine..."
+    );
 
 
-  /*
-  ----------------------------------------------------------
-  الحصول على محرك FFmpeg
-  ----------------------------------------------------------
-  */
+    /*
+    ----------------------------------------------------------
+    Get FFmpeg
+    ----------------------------------------------------------
+    */
 
-  const ffmpeg =
-    await getFFmpeg(
-      function(progress) {
+    ffmpeg = await getFFmpeg(
+      function (progress, message) {
+
+        let percent = Number(progress);
+
+        if (!Number.isFinite(percent)) {
+          percent = 0;
+        }
 
         /*
-        تحويل تقدم تحميل المحرك
-        إلى نسبة تقريبية.
+        Loader can return either:
+        0 - 1
+        or
+        0 - 100
         */
 
-        const value =
-          Math.max(
-            0,
-            Math.min(
-              100,
-              progress
-            )
-          );
+        if (percent <= 1) {
+          percent *= 100;
+        }
+
+        percent = Math.max(
+          0,
+          Math.min(
+            100,
+            percent
+          )
+        );
+
 
         onProgress(
-          value,
-          "جاري تحميل محرك الفيديو..."
+          percent,
+          message || "Loading video engine..."
         );
 
       }
     );
 
 
-  /*
-  ----------------------------------------------------------
-  تسجيل رسائل المحرك
-  ----------------------------------------------------------
-  */
+    /*
+    ----------------------------------------------------------
+    Verify FFmpeg
+    ----------------------------------------------------------
+    */
 
-  let lastLog = "";
-
-  const logHandler =
-    function(data) {
-
-      if (!data) {
-        return;
-      }
-
-      lastLog =
-        String(data);
-
-      /*
-      لا نعرض رسائل FFmpeg الخام للمستخدم
-      لأنها قد تكون طويلة جدًا.
-      */
-
-    };
+    if (
+      !ffmpeg ||
+      !ffmpeg.loaded
+    ) {
+      throw new Error(
+        "FFmpeg engine is not ready."
+      );
+    }
 
 
-  /*
-  ----------------------------------------------------------
-  تسجيل تقدم المحرك
-  ----------------------------------------------------------
-  */
+    /*
+    ----------------------------------------------------------
+    Create file names
+    ----------------------------------------------------------
+    */
 
-  const progressHandler =
-    function(data) {
+    inputName =
+      createInputFileName(
+        videoFile
+      );
 
-      if (!data) {
-        return;
-      }
 
-      /*
-      ffmpeg.wasm يعطي نسبة بين 0 و 1
-      في الإصدارات التي تدعم progress.
-      */
+    outputName =
+      OUTPUT_FILE_NAME;
 
-      if (
-        typeof data.progress === "number"
-      ) {
+
+    /*
+    ----------------------------------------------------------
+    Event handlers
+    ----------------------------------------------------------
+    */
+
+    logHandler =
+      function (data) {
+
+        if (!data) {
+          return;
+        }
+
+
+        if (
+          typeof data.message !==
+          "undefined"
+        ) {
+
+          lastLog =
+            String(
+              data.message
+            );
+
+        } else {
+
+          lastLog =
+            String(data);
+
+        }
+
+      };
+
+
+    progressHandler =
+      function (data) {
+
+        if (!data) {
+          return;
+        }
+
 
         const raw =
-          data.progress * 100;
+          Number(
+            data.progress
+          );
 
-        const progress =
+
+        if (
+          !Number.isFinite(raw)
+        ) {
+          return;
+        }
+
+
+        const percent =
           Math.max(
             0,
             Math.min(
               100,
-              raw
+              raw * 100
             )
           );
 
+
         onProgress(
-          progress,
-          "جاري قص الفيديو..."
+          percent,
+          "Cutting video..."
         );
 
-      }
-
-    };
+      };
 
 
-  /*
-  ----------------------------------------------------------
-  إضافة listeners
-  ----------------------------------------------------------
-  */
-
-  try {
+    /*
+    ----------------------------------------------------------
+    Register events
+    ----------------------------------------------------------
+    */
 
     if (
       typeof ffmpeg.on === "function"
@@ -236,6 +278,7 @@ export async function processVideo(
         "log",
         logHandler
       );
+
 
       ffmpeg.on(
         "progress",
@@ -247,29 +290,13 @@ export async function processVideo(
 
     /*
     ----------------------------------------------------------
-    اسم ملف الإدخال
-    ----------------------------------------------------------
-    */
-
-    const inputName =
-      createInputFileName(
-        videoFile
-      );
-
-
-    const outputName =
-      DEFAULT_OUTPUT_NAME;
-
-
-    /*
-    ----------------------------------------------------------
-    تحويل الفيديو إلى بيانات
+    Read video
     ----------------------------------------------------------
     */
 
     onProgress(
-      8,
-      "جاري تجهيز ملف الفيديو..."
+      5,
+      "Preparing video..."
     );
 
 
@@ -279,11 +306,47 @@ export async function processVideo(
       );
 
 
+    if (
+      !inputData ||
+      inputData.length === 0
+    ) {
+
+      throw new Error(
+        "The selected video is empty."
+      );
+
+    }
+
+
     /*
     ----------------------------------------------------------
-    كتابة الفيديو داخل محرك FFmpeg
+    Remove old files
     ----------------------------------------------------------
     */
+
+    await safeDelete(
+      ffmpeg,
+      inputName
+    );
+
+
+    await safeDelete(
+      ffmpeg,
+      outputName
+    );
+
+
+    /*
+    ----------------------------------------------------------
+    Write video into FFmpeg
+    ----------------------------------------------------------
+    */
+
+    onProgress(
+      10,
+      "Loading video..."
+    );
+
 
     await ffmpeg.writeFile(
       inputName,
@@ -291,37 +354,9 @@ export async function processVideo(
     );
 
 
-    onProgress(
-      12,
-      "تم تجهيز الفيديو..."
-    );
-
-
     /*
     ----------------------------------------------------------
-    تنظيف ملف قديم إن وجد
-    ----------------------------------------------------------
-    */
-
-    try {
-
-      await ffmpeg.deleteFile(
-        outputName
-      );
-
-    } catch (error) {
-
-      /*
-      إذا لم يكن الملف موجودًا
-      لا توجد مشكلة.
-      */
-
-    }
-
-
-    /*
-    ----------------------------------------------------------
-    حساب مدة المقطع
+    Build FFmpeg command
     ----------------------------------------------------------
     */
 
@@ -332,63 +367,58 @@ export async function processVideo(
       );
 
 
-    /*
-    ----------------------------------------------------------
-    أوامر FFmpeg
-    ----------------------------------------------------------
-
-    نستخدم إعادة ترميز كاملة
-    بدل القص السريع فقط.
-
-    السبب:
-
-    القص السريع قد يسبب مشاكل
-    مع بعض أنواع الفيديو.
-
-    إعادة الترميز أكثر توافقًا.
-    ----------------------------------------------------------
-    */
-
     const command = [
 
       "-ss",
-      formatFFmpegTime(
+
+      formatTime(
         start
       ),
 
       "-i",
+
       inputName,
 
       "-t",
-      formatFFmpegTime(
+
+      formatTime(
         safeDuration
       ),
 
       "-map",
+
       "0:v:0",
 
       "-map",
+
       "0:a:0?",
 
       "-c:v",
+
       "libx264",
 
       "-preset",
+
       "ultrafast",
 
       "-crf",
+
       "23",
 
       "-pix_fmt",
+
       "yuv420p",
 
       "-c:a",
+
       "aac",
 
       "-b:a",
+
       "128k",
 
       "-movflags",
+
       "+faststart",
 
       outputName
@@ -398,17 +428,17 @@ export async function processVideo(
 
     /*
     ----------------------------------------------------------
-    بدء القص
+    Start processing
     ----------------------------------------------------------
     */
 
     onProgress(
       15,
-      "بدأ قص الفيديو..."
+      "Cutting video..."
     );
 
 
-    const result =
+    const exitCode =
       await ffmpeg.exec(
         command
       );
@@ -416,18 +446,18 @@ export async function processVideo(
 
     /*
     ----------------------------------------------------------
-    التحقق من نتيجة التنفيذ
+    Check FFmpeg result
     ----------------------------------------------------------
     */
 
     if (
-      typeof result === "number" &&
-      result !== 0
+      typeof exitCode === "number" &&
+      exitCode !== 0
     ) {
 
       throw new Error(
-        "محرك FFmpeg أعاد رمز خطأ: " +
-        result
+        "FFmpeg returned error code " +
+        exitCode
       );
 
     }
@@ -435,13 +465,13 @@ export async function processVideo(
 
     /*
     ----------------------------------------------------------
-    قراءة الفيديو الناتج
+    Read output
     ----------------------------------------------------------
     */
 
     onProgress(
-      92,
-      "جاري تجهيز الملف النهائي..."
+      90,
+      "Preparing final video..."
     );
 
 
@@ -451,27 +481,21 @@ export async function processVideo(
       );
 
 
-    /*
-    ----------------------------------------------------------
-    التحقق من وجود الناتج
-    ----------------------------------------------------------
-    */
-
     if (!outputData) {
 
       throw new Error(
-        "لم يتم إنشاء ملف الفيديو الناتج."
+        "FFmpeg did not create an output file."
       );
 
     }
 
 
     if (
-      !outputData.length
+      outputData.length === 0
     ) {
 
       throw new Error(
-        "ملف الفيديو الناتج فارغ."
+        "The output video is empty."
       );
 
     }
@@ -479,7 +503,7 @@ export async function processVideo(
 
     /*
     ----------------------------------------------------------
-    إنشاء Blob
+    Create Blob
     ----------------------------------------------------------
     */
 
@@ -503,36 +527,38 @@ export async function processVideo(
 
     /*
     ----------------------------------------------------------
-    نجاح المعالجة
+    Finish
     ----------------------------------------------------------
     */
 
     onProgress(
       100,
-      "تم قص الفيديو بنجاح."
+      "Video ready."
     );
 
 
-    /*
-    ----------------------------------------------------------
-    النتيجة
-    ----------------------------------------------------------
-    */
-
     return {
 
-      blob,
+      blob:
+
+        blob,
 
       filename:
+
         createOutputName(
           videoFile
         ),
 
-      start,
+      start:
 
-      end,
+        start,
+
+      end:
+
+        end,
 
       duration:
+
         safeDuration
 
     };
@@ -542,31 +568,21 @@ export async function processVideo(
 
     /*
     ----------------------------------------------------------
-    تسجيل الخطأ
+    Error handling
     ----------------------------------------------------------
     */
 
     console.error(
-      "NOVA CUT PROCESSOR ERROR:",
+      "[NOVA CUT] Processor error:",
       error
     );
 
 
-    /*
-    ----------------------------------------------------------
-    إعادة الخطأ للواجهة
-    ----------------------------------------------------------
-    */
-
-    const message =
+    throw new Error(
       createReadableError(
         error,
         lastLog
-      );
-
-
-    throw new Error(
-      message
+      )
     );
 
 
@@ -574,75 +590,64 @@ export async function processVideo(
 
     /*
     ----------------------------------------------------------
-    إزالة listeners
+    Remove event listeners
     ----------------------------------------------------------
     */
 
     try {
 
       if (
+        ffmpeg &&
         typeof ffmpeg.off === "function"
       ) {
 
-        ffmpeg.off(
-          "log",
-          logHandler
-        );
+        if (logHandler) {
 
-        ffmpeg.off(
-          "progress",
-          progressHandler
-        );
+          ffmpeg.off(
+            "log",
+            logHandler
+          );
+
+        }
+
+
+        if (progressHandler) {
+
+          ffmpeg.off(
+            "progress",
+            progressHandler
+          );
+
+        }
 
       }
 
     } catch (error) {
 
-      /*
-      تجاهل خطأ التنظيف.
-      */
+      console.warn(
+        "[NOVA CUT] Listener cleanup failed.",
+        error
+      );
 
     }
 
 
     /*
     ----------------------------------------------------------
-    حذف ملف الإدخال والإخراج
+    Delete temporary files
     ----------------------------------------------------------
     */
 
-    try {
-
-      await safeDelete(
-        ffmpeg,
-        createInputFileName(
-          videoFile
-        )
-      );
-
-    } catch (error) {
-
-      /*
-      تجاهل أخطاء التنظيف.
-      */
-
-    }
+    await safeDelete(
+      ffmpeg,
+      inputName
+    );
 
 
-    try {
-
-      await safeDelete(
-        ffmpeg,
-        DEFAULT_OUTPUT_NAME
-      );
-
-    } catch (error) {
-
-      /*
-      تجاهل أخطاء التنظيف.
-      */
-
-    }
+    await safeDelete(
+      ffmpeg,
+      outputName
+    );
 
   }
 
@@ -651,37 +656,27 @@ export async function processVideo(
 
 /*
 ============================================================
-إنشاء اسم ملف الإدخال
+CREATE INPUT FILE NAME
 ============================================================
 */
 
-function createInputFileName(
-  file
-) {
+function createInputFileName(file) {
 
-  /*
-  نستخدم امتدادًا شائعًا.
-  FFmpeg يستطيع معرفة نوع الملف
-  من محتواه في معظم الحالات.
-  */
-
-  const original =
+  const originalName =
     file &&
     file.name
       ? file.name
-      : "input-video";
+      : "input-video.mp4";
 
 
   const extension =
     getExtension(
-      original
+      originalName
     );
 
 
   if (!extension) {
-
     return "input-video.mp4";
-
   }
 
 
@@ -695,16 +690,15 @@ function createInputFileName(
 
 /*
 ============================================================
-الحصول على امتداد الملف
+GET VIDEO EXTENSION
 ============================================================
 */
 
-function getExtension(
-  filename
-) {
+function getExtension(filename) {
 
   if (
-    typeof filename !== "string"
+    typeof filename !==
+    "string"
   ) {
 
     return "";
@@ -712,14 +706,14 @@ function getExtension(
   }
 
 
-  const clean =
+  const cleanName =
     filename
       .split("?")[0]
       .split("#")[0];
 
 
   const parts =
-    clean.split(".");
+    cleanName.split(".");
 
 
   if (
@@ -738,11 +732,6 @@ function getExtension(
       .trim()
       .toLowerCase();
 
-
-  /*
-  السماح فقط بامتدادات
-  الفيديو الشائعة.
-  */
 
   const allowed = [
 
@@ -777,13 +766,11 @@ function getExtension(
 
 /*
 ============================================================
-تنسيق الوقت لـ FFmpeg
+FORMAT TIME
 ============================================================
 */
 
-function formatFFmpegTime(
-  seconds
-) {
+function formatTime(seconds) {
 
   const value =
     Number(seconds);
@@ -793,7 +780,7 @@ function formatFFmpegTime(
     !Number.isFinite(value)
   ) {
 
-    return "0";
+    return "0.000";
 
   }
 
@@ -808,13 +795,11 @@ function formatFFmpegTime(
 
 /*
 ============================================================
-إنشاء اسم الملف الناتج
+CREATE OUTPUT NAME
 ============================================================
 */
 
-function createOutputName(
-  file
-) {
+function createOutputName(file) {
 
   let name =
     file &&
@@ -823,20 +808,12 @@ function createOutputName(
       : "video";
 
 
-  /*
-  إزالة الامتداد القديم.
-  */
-
   name =
     name.replace(
       /\.[^/.]+$/,
       ""
     );
 
-
-  /*
-  تنظيف الاسم.
-  */
 
   name =
     name
@@ -848,9 +825,7 @@ function createOutputName(
 
 
   if (!name) {
-
     name = "video";
-
   }
 
 
@@ -864,7 +839,7 @@ function createOutputName(
 
 /*
 ============================================================
-حذف ملف بأمان
+SAFE DELETE
 ============================================================
 */
 
@@ -892,8 +867,7 @@ async function safeDelete(
   } catch (error) {
 
     /*
-    لا نوقف البرنامج
-    بسبب مشكلة تنظيف.
+    Ignore cleanup errors.
     */
 
   }
@@ -903,7 +877,7 @@ async function safeDelete(
 
 /*
 ============================================================
-إنشاء رسالة خطأ مفهومة
+CREATE READABLE ERROR
 ============================================================
 */
 
@@ -913,16 +887,14 @@ function createReadableError(
 ) {
 
   if (
-    error instanceof Error &&
+    error &&
     error.message
   ) {
 
-    /*
-    لا نستخدم رسالة عامة فقط.
-    */
-
     const message =
-      error.message;
+      String(
+        error.message
+      );
 
 
     if (
@@ -932,7 +904,7 @@ function createReadableError(
     ) {
 
       return (
-        "المتصفح منع تشغيل محرك الفيديو بسبب إعدادات الأمان."
+        "The browser blocked the video engine because of security settings."
       );
 
     }
@@ -945,7 +917,7 @@ function createReadableError(
     ) {
 
       return (
-        "تعذر تحميل ملفات محرك الفيديو."
+        "The video engine files could not be downloaded."
       );
 
     }
@@ -958,8 +930,19 @@ function createReadableError(
     ) {
 
       return (
-        "تعذر الاتصال بملفات محرك الفيديو."
+        "Could not connect to the video engine."
       );
+
+    }
+
+
+    if (
+      message.includes(
+        "FFmpeg"
+      )
+    ) {
+
+      return message;
 
     }
 
@@ -970,14 +953,12 @@ function createReadableError(
 
 
   if (lastLog) {
-
     return lastLog;
-
   }
 
 
   return (
-    "حدث خطأ غير معروف أثناء معالجة الفيديو."
+    "An unknown error occurred while processing the video."
   );
 
 }
@@ -985,6 +966,7 @@ function createReadableError(
 
 /*
 ============================================================
-النهاية
+END
 ============================================================
 */
+```
