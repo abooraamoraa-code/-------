@@ -9,7 +9,7 @@ PROCESSOR.JS
 import {
   getFFmpeg,
   resetFFmpeg
-} from "./engine/ffmpeg-loader.js";
+} from "./ffmpeg-loader.js";
 
 
 /*
