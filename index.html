@@ -1,3503 +1,2029 @@
-﻿```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
+  <title>NOVA CUT — قص الفيديو</title>
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-<meta
-    name="theme-color"
-    content="#080b12"
->
+    :root {
+      --bg: #070b14;
+      --panel: #0d1320;
+      --panel2: #111a2b;
+      --border: rgba(255,255,255,.09);
+      --text: #f5f7fb;
+      --muted: #8f9bb0;
+      --accent: #6c63ff;
+      --accent2: #8d85ff;
+      --danger: #ff5577;
+      --success: #20d49b;
+    }
 
-<title>NOVA CUT — Video Cutter</title>
-
-<style>
-
-/* =========================================================
-   NOVA CUT
-   VERSION 2
-   VIDEO CUTTER
-   ========================================================= */
-
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
-
-html{
-    scroll-behavior:smooth;
-}
-
-body{
-    min-height:100vh;
-    background:
-        radial-gradient(
-            circle at 15% 10%,
-            rgba(102,88,235,.16),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 85% 80%,
-            rgba(0,214,164,.08),
-            transparent 30%
-        ),
-        #070a10;
-    color:#ffffff;
-    font-family:
-        "Segoe UI",
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(108,99,255,.15), transparent 30%),
+        radial-gradient(circle at 80% 20%, rgba(32,212,155,.08), transparent 25%),
+        var(--bg);
+      color: var(--text);
+      font-family:
         Tahoma,
         Arial,
         sans-serif;
-    overflow-x:hidden;
-}
+    }
 
-button,
-input{
-    font-family:inherit;
-}
+    button,
+    input {
+      font-family: inherit;
+    }
 
-button{
-    cursor:pointer;
-}
+    .app {
+      width: min(1200px, calc(100% - 30px));
+      margin: auto;
+      padding: 25px 0 50px;
+    }
 
-.hidden{
-    display:none !important;
-}
+    /* HEADER */
 
-/* =========================================================
-   HEADER
-   ========================================================= */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 15px 0 30px;
+    }
 
-.header{
-    width:100%;
-    height:72px;
-    position:sticky;
-    top:0;
-    z-index:100;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:0 28px;
-    border-bottom:1px solid #222b3a;
-    background:rgba(7,10,16,.88);
-    backdrop-filter:blur(18px);
-}
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-.brand{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-
-.brand-icon{
-    width:42px;
-    height:42px;
-    border-radius:13px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
-    background:
+    .logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
         linear-gradient(
-            135deg,
-            #6557e8,
-            #8d7fff
+          135deg,
+          var(--accent),
+          #a78bfa
         );
-    box-shadow:
-        0 10px 30px
-        rgba(101,87,232,.30);
-}
+      font-size: 22px;
+      font-weight: 900;
+      box-shadow:
+        0 10px 35px rgba(108,99,255,.3);
+    }
 
-.brand-name{
-    font-size:20px;
-    font-weight:900;
-    letter-spacing:.5px;
-}
+    .brand-text h1 {
+      font-size: 21px;
+      letter-spacing: .5px;
+    }
 
-.header-right{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
+    .brand-text p {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
 
-.badge{
-    padding:8px 13px;
-    border:1px solid #273142;
-    border-radius:30px;
-    color:#9ba8bc;
-    background:#101621;
-    font-size:12px;
-}
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 9px 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
 
-/* =========================================================
-   MAIN
-   ========================================================= */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
 
-.container{
-    width:min(
-        1180px,
-        calc(100% - 28px)
-    );
-    margin:auto;
-    padding:42px 0 70px;
-}
+    /* MAIN */
 
-.hero{
-    text-align:center;
-    margin-bottom:30px;
-}
+    .main {
+      display: grid;
+      gap: 18px;
+    }
 
-.hero h1{
-    font-size:
-        clamp(
-            31px,
-            5vw,
-            56px
-        );
-    line-height:1.1;
-    font-weight:950;
-    background:
+    .panel {
+      background:
         linear-gradient(
-            90deg,
-            #ffffff,
-            #a69cff
+          180deg,
+          rgba(255,255,255,.035),
+          rgba(255,255,255,.018)
         );
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-    margin-bottom:13px;
-}
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
 
-.hero p{
-    color:#8e9aad;
-    font-size:15px;
-}
+    /* UPLOAD */
 
-/* =========================================================
-   APP
-   ========================================================= */
+    .upload-panel {
+      padding: 30px;
+    }
 
-.app{
-    background:
-        rgba(14,19,29,.92);
-    border:1px solid #242e3e;
-    border-radius:24px;
-    padding:20px;
-    box-shadow:
-        0 30px 90px
-        rgba(0,0,0,.35);
-}
-
-/* =========================================================
-   UPLOAD
-   ========================================================= */
-
-.upload{
-    min-height:440px;
-    border:2px dashed #303b4e;
-    border-radius:20px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding:35px;
-    transition:.25s;
-    background:
+    .upload-box {
+      min-height: 260px;
+      border: 2px dashed rgba(108,99,255,.4);
+      border-radius: 20px;
+      background:
         radial-gradient(
-            circle at center,
-            rgba(102,88,235,.07),
-            transparent 45%
+          circle at center,
+          rgba(108,99,255,.08),
+          transparent 65%
         );
-}
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      transition: .25s ease;
+    }
 
-.upload.dragging{
-    border-color:#7568f2;
-    background:
-        rgba(102,88,235,.10);
-    transform:scale(.995);
-}
+    .upload-box:hover {
+      border-color: var(--accent);
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(108,99,255,.14),
+          transparent 65%
+        );
+      transform: translateY(-1px);
+    }
 
-.upload-icon{
-    width:90px;
-    height:90px;
-    border-radius:25px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:42px;
-    margin-bottom:22px;
-    background:
-        rgba(102,88,235,.13);
-    border:1px solid
-        rgba(117,104,242,.20);
-}
+    .upload-icon {
+      width: 74px;
+      height: 74px;
+      margin: 0 auto 18px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(108,99,255,.13);
+      border: 1px solid rgba(108,99,255,.25);
+      font-size: 32px;
+    }
 
-.upload h2{
-    font-size:25px;
-    margin-bottom:9px;
-}
+    .upload-title {
+      font-size: 21px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
 
-.upload p{
-    color:#8793a7;
-    font-size:14px;
-    margin-bottom:25px;
-}
+    .upload-subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
 
-.primary-button{
-    min-height:48px;
-    border:0;
-    border-radius:12px;
-    padding:0 24px;
-    color:#ffffff;
-    font-size:15px;
-    font-weight:800;
-    background:
+    .upload-button {
+      display: inline-flex;
+      margin-top: 20px;
+      padding: 12px 22px;
+      border-radius: 12px;
+      background: var(--accent);
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    #videoInput {
+      display: none;
+    }
+
+    /* EDITOR */
+
+    .editor {
+      display: none;
+    }
+
+    .editor.active {
+      display: block;
+    }
+
+    .video-area {
+      padding: 20px;
+    }
+
+    .video-wrapper {
+      width: 100%;
+      background: #000;
+      border-radius: 17px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #video {
+      width: 100%;
+      max-height: 570px;
+      display: block;
+      background: #000;
+    }
+
+    /* INFO */
+
+    .info-row {
+      display: grid;
+      grid-template-columns:
+        repeat(3, 1fr);
+      gap: 12px;
+      padding: 0 20px 20px;
+    }
+
+    .info-card {
+      background: rgba(255,255,255,.035);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .info-label {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 7px;
+    }
+
+    .info-value {
+      font-size: 17px;
+      font-weight: 900;
+      direction: ltr;
+    }
+
+    /* TIMELINE */
+
+    .timeline-panel {
+      padding: 20px;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .timeline-title {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .timeline-help {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .timeline {
+      position: relative;
+      height: 105px;
+      border-radius: 15px;
+      overflow: hidden;
+      background: #05070c;
+      border: 1px solid var(--border);
+      user-select: none;
+    }
+
+    .thumbs {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .thumb {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      object-fit: cover;
+      opacity: .65;
+      border-right: 1px solid rgba(0,0,0,.35);
+    }
+
+    .timeline-dark-left,
+    .timeline-dark-right {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: rgba(0,0,0,.68);
+      pointer-events: none;
+    }
+
+    .timeline-dark-left {
+      left: 0;
+      width: 0%;
+    }
+
+    .timeline-dark-right {
+      right: 0;
+      width: 0%;
+    }
+
+    .selection {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      border-top: 3px solid var(--accent);
+      border-bottom: 3px solid var(--accent);
+      pointer-events: none;
+    }
+
+    .handle {
+      position: absolute;
+      top: -2px;
+      bottom: -2px;
+      width: 18px;
+      cursor: ew-resize;
+      z-index: 10;
+      transform: translateX(-50%);
+    }
+
+    .handle-line {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: white;
+      transform: translateX(-50%);
+      box-shadow:
+        0 0 8px rgba(108,99,255,.9);
+    }
+
+    .handle-grip {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 18px;
+      height: 42px;
+      transform: translate(-50%, -50%);
+      border-radius: 7px;
+      background: var(--accent);
+      border: 2px solid white;
+      box-shadow:
+        0 5px 20px rgba(0,0,0,.45);
+    }
+
+    .handle-grip::before,
+    .handle-grip::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 3px;
+      height: 16px;
+      background: rgba(255,255,255,.8);
+      transform: translateY(-50%);
+      border-radius: 4px;
+    }
+
+    .handle-grip::before {
+      left: 5px;
+    }
+
+    .handle-grip::after {
+      right: 5px;
+    }
+
+    .playhead {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #fff;
+      z-index: 8;
+      pointer-events: none;
+      box-shadow: 0 0 7px rgba(255,255,255,.9);
+    }
+
+    .playhead-dot {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: white;
+      transform: translate(-50%, -50%);
+    }
+
+    /* CONTROLS */
+
+    .controls {
+      padding: 0 20px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      border: 0;
+      outline: 0;
+      cursor: pointer;
+      border-radius: 12px;
+      padding: 12px 17px;
+      color: white;
+      font-size: 13px;
+      font-weight: 800;
+      transition: .2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      box-shadow: 0 8px 20px rgba(108,99,255,.2);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--border);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #04120e;
+    }
+
+    .btn-danger {
+      background: rgba(255,85,119,.12);
+      border: 1px solid rgba(255,85,119,.25);
+      color: #ff8da4;
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* TIME CONTROLS */
+
+    .time-controls {
+      padding: 0 20px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .time-box {
+      background: rgba(255,255,255,.035);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .time-box label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .time-box input {
+      width: 100%;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: white;
+      padding: 10px;
+      direction: ltr;
+      text-align: center;
+      outline: none;
+    }
+
+    .time-box input:focus {
+      border-color: var(--accent);
+    }
+
+    /* PROCESS */
+
+    .process-panel {
+      display: none;
+      padding: 20px;
+    }
+
+    .process-panel.active {
+      display: block;
+    }
+
+    .progress-container {
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,.07);
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background:
         linear-gradient(
-            135deg,
-            #6557e8,
-            #8b7eff
+          90deg,
+          var(--accent),
+          var(--success)
         );
-    box-shadow:
-        0 12px 35px
-        rgba(101,87,232,.25);
-    transition:.2s;
-}
-
-.primary-button:hover{
-    transform:translateY(-2px);
-}
-
-.primary-button:active{
-    transform:translateY(0);
-}
-
-/* =========================================================
-   EDITOR
-   ========================================================= */
-
-.editor{
-    display:none;
-}
-
-.editor.show{
-    display:block;
-}
-
-/* =========================================================
-   VIDEO
-   ========================================================= */
-
-.video-wrapper{
-    position:relative;
-    width:100%;
-    background:#000000;
-    border-radius:18px;
-    overflow:hidden;
-    border:1px solid #252e3d;
-}
-
-#video{
-    width:100%;
-    max-height:650px;
-    display:block;
-    background:#000000;
-}
-
-/* =========================================================
-   VIDEO INFORMATION
-   ========================================================= */
-
-.video-info{
-    min-height:58px;
-    padding:12px 15px;
-    background:#0b1018;
-    border-top:1px solid #252e3d;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:15px;
-}
-
-.video-name{
-    min-width:0;
-    font-size:14px;
-    font-weight:700;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-
-.video-meta{
-    color:#7f8ba0;
-    font-size:12px;
-    white-space:nowrap;
-}
-
-/* =========================================================
-   TIMELINE PANEL
-   ========================================================= */
-
-.timeline-panel{
-    margin-top:18px;
-    border:1px solid #273143;
-    background:#0b111a;
-    border-radius:18px;
-    padding:18px;
-}
-
-.timeline-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    margin-bottom:13px;
-}
-
-.timeline-title{
-    font-size:15px;
-    font-weight:900;
-}
-
-.timeline-hint{
-    color:#778499;
-    font-size:12px;
-}
-
-/* =========================================================
-   TIME DISPLAY
-   ========================================================= */
-
-.selection-info{
-    display:grid;
-    grid-template-columns:
-        1fr
-        auto
-        1fr;
-    align-items:center;
-    gap:10px;
-    margin-bottom:15px;
-}
-
-.time-card{
-    border:1px solid #273143;
-    background:#111823;
-    border-radius:12px;
-    padding:11px 13px;
-}
-
-.time-card small{
-    display:block;
-    color:#778499;
-    font-size:10px;
-    margin-bottom:4px;
-}
-
-.time-card strong{
-    font-size:17px;
-    font-variant-numeric:tabular-nums;
-}
-
-.time-card.start{
-    text-align:right;
-}
-
-.time-card.end{
-    text-align:left;
-}
-
-.selection-duration{
-    min-width:90px;
-    text-align:center;
-    color:#9c91ff;
-    font-size:12px;
-    font-weight:800;
-}
-
-/* =========================================================
-   THUMBNAILS
-   ========================================================= */
-
-.timeline-wrapper{
-    position:relative;
-    width:100%;
-    height:105px;
-    border-radius:12px;
-    overflow:hidden;
-    background:#080c12;
-    border:1px solid #202a39;
-    user-select:none;
-}
-
-.thumbnails{
-    width:100%;
-    height:100%;
-    display:flex;
-    overflow:hidden;
-}
-
-.thumbnail{
-    flex:1 1 0;
-    min-width:0;
-    height:100%;
-    position:relative;
-    overflow:hidden;
-    background:#151c27;
-}
-
-.thumbnail canvas{
-    width:100%;
-    height:100%;
-    display:block;
-    object-fit:cover;
-}
-
-.thumbnail-number{
-    position:absolute;
-    bottom:4px;
-    right:5px;
-    padding:2px 5px;
-    border-radius:4px;
-    background:rgba(0,0,0,.65);
-    color:#ffffff;
-    font-size:9px;
-}
-
-/* =========================================================
-   SELECTED AREA
-   ========================================================= */
-
-.selection-area{
-    position:absolute;
-    top:0;
-    bottom:0;
-    left:0;
-    right:0;
-    pointer-events:none;
-    border-top:3px solid #7568f2;
-    border-bottom:3px solid #7568f2;
-    background:
-        rgba(101,87,232,.12);
-    z-index:4;
-}
-
-.selection-left-dark{
-    position:absolute;
-    top:0;
-    bottom:0;
-    left:0;
-    width:0;
-    background:
-        rgba(0,0,0,.64);
-    z-index:3;
-    pointer-events:none;
-}
-
-.selection-right-dark{
-    position:absolute;
-    top:0;
-    bottom:0;
-    right:0;
-    width:0;
-    background:
-        rgba(0,0,0,.64);
-    z-index:3;
-    pointer-events:none;
-}
-
-/* =========================================================
-   HANDLES
-   ========================================================= */
-
-.handle{
-    position:absolute;
-    top:-2px;
-    bottom:-2px;
-    width:18px;
-    z-index:10;
-    cursor:ew-resize;
-    touch-action:none;
-}
-
-.handle-left{
-    left:0;
-}
-
-.handle-right{
-    right:0;
-}
-
-.handle-line{
-    position:absolute;
-    top:0;
-    bottom:0;
-    left:50%;
-    width:4px;
-    transform:translateX(-50%);
-    border-radius:5px;
-    background:#8d82ff;
-    box-shadow:
-        0 0 0 1px
-        rgba(0,0,0,.4),
-        0 0 15px
-        rgba(141,130,255,.5);
-}
-
-.handle-tab{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:
-        translate(-50%,-50%);
-    width:18px;
-    height:45px;
-    border-radius:7px;
-    background:#8d82ff;
-    border:2px solid #c1bbff;
-    box-shadow:
-        0 5px 20px
-        rgba(0,0,0,.35);
-}
-
-.handle-tab::before,
-.handle-tab::after{
-    content:"";
-    position:absolute;
-    top:50%;
-    width:2px;
-    height:17px;
-    transform:translateY(-50%);
-    background:#ffffff;
-    border-radius:2px;
-}
-
-.handle-tab::before{
-    left:5px;
-}
-
-.handle-tab::after{
-    right:5px;
-}
-
-/* =========================================================
-   PLAYHEAD
-   ========================================================= */
-
-.playhead{
-    position:absolute;
-    top:0;
-    bottom:0;
-    width:2px;
-    background:#ffffff;
-    box-shadow:
-        0 0 10px
-        rgba(255,255,255,.7);
-    z-index:8;
-    pointer-events:none;
-    left:0;
-}
-
-.playhead::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:50%;
-    transform:translateX(-50%);
-    width:0;
-    height:0;
-    border-left:7px solid transparent;
-    border-right:7px solid transparent;
-    border-top:9px solid #ffffff;
-}
-
-/* =========================================================
-   TIMELINE RANGE INPUT
-   ========================================================= */
-
-.timeline-click-layer{
-    position:absolute;
-    inset:0;
-    z-index:6;
-    cursor:pointer;
-}
-
-/* =========================================================
-   LOADING THUMBNAILS
-   ========================================================= */
-
-.thumbnail-loading{
-    width:100%;
-    height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#68758a;
-    font-size:11px;
-}
-
-/* =========================================================
-   QUICK CONTROLS
-   ========================================================= */
-
-.quick-controls{
-    margin-top:14px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    flex-wrap:wrap;
-}
-
-.quick-left,
-.quick-right{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    flex-wrap:wrap;
-}
-
-.small-button{
-    height:38px;
-    border-radius:9px;
-    padding:0 13px;
-    color:#dbe1eb;
-    background:#131a25;
-    border:1px solid #293345;
-    font-size:12px;
-    font-weight:700;
-}
-
-.small-button:hover{
-    border-color:#4b5870;
-}
-
-.small-button.active{
-    background:#6257d8;
-    border-color:#8176ef;
-    color:#ffffff;
-}
-
-.current-time{
-    color:#778499;
-    font-size:12px;
-}
-
-/* =========================================================
-   MAIN ACTIONS
-   ========================================================= */
-
-.actions{
-    margin-top:18px;
-    display:grid;
-    grid-template-columns:
-        1fr
-        auto;
-    gap:10px;
-}
-
-.cut-button{
-    min-height:54px;
-    border:0;
-    border-radius:13px;
-    background:
-        linear-gradient(
-            135deg,
-            #00b889,
-            #00d9a3
-        );
-    color:#001b14;
-    font-size:16px;
-    font-weight:950;
-    transition:.2s;
-}
-
-.cut-button:hover{
-    transform:translateY(-2px);
-}
-
-.cut-button:disabled{
-    opacity:.55;
-    cursor:not-allowed;
-    transform:none;
-}
-
-.reset-button{
-    min-height:54px;
-    padding:0 20px;
-    border:1px solid #2b3648;
-    border-radius:13px;
-    color:#ffffff;
-    background:#141b26;
-    font-weight:800;
-}
-
-/* =========================================================
-   PROCESSING
-   ========================================================= */
-
-.status{
-    display:none;
-    margin-top:16px;
-    padding:16px;
-    border-radius:14px;
-    border:1px solid #283346;
-    background:#0a1018;
-}
-
-.status.show{
-    display:block;
-}
-
-.status-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    margin-bottom:10px;
-}
-
-.status-message{
-    font-size:13px;
-    font-weight:800;
-}
-
-.status-percent{
-    font-size:12px;
-    color:#9d94ff;
-    font-weight:800;
-}
-
-.progress{
-    width:100%;
-    height:8px;
-    background:#252e3c;
-    border-radius:20px;
-    overflow:hidden;
-}
-
-.progress-bar{
-    height:100%;
-    width:0%;
-    border-radius:20px;
-    background:
-        linear-gradient(
-            90deg,
-            #6557e8,
-            #00c99b
-        );
-    transition:
-        width .2s ease;
-}
-
-/* =========================================================
-   RESULT
-   ========================================================= */
-
-.result{
-    display:none;
-    margin-top:16px;
-    padding:20px;
-    border-radius:16px;
-    border:1px solid
-        rgba(0,201,155,.25);
-    background:
-        rgba(0,201,155,.045);
-}
-
-.result.show{
-    display:block;
-}
-
-.result-title{
-    font-size:17px;
-    font-weight:900;
-    margin-bottom:7px;
-}
-
-.result-text{
-    color:#8793a6;
-    font-size:13px;
-    margin-bottom:15px;
-}
-
-.download-button{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    min-height:46px;
-    padding:0 22px;
-    border-radius:11px;
-    text-decoration:none;
-    color:#001b14;
-    background:#00d09e;
-    font-weight:950;
-}
-
-/* =========================================================
-   SPINNER
-   ========================================================= */
-
-.spinner{
-    width:16px;
-    height:16px;
-    border-radius:50%;
-    border:2px solid
-        rgba(255,255,255,.25);
-    border-top-color:#ffffff;
-    display:inline-block;
-    animation:
-        spin .7s linear infinite;
-    vertical-align:middle;
-}
-
-@keyframes spin{
-
-    to{
-        transform:rotate(360deg);
+      transition: width .2s ease;
     }
 
-}
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-.footer{
-    text-align:center;
-    margin-top:22px;
-    color:#5e6b80;
-    font-size:11px;
-}
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media(max-width:720px){
-
-    .header{
-        padding:0 15px;
+    .process-text {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 10px;
     }
 
-    .badge{
-        display:none;
+    /* RESULT */
+
+    .result-panel {
+      display: none;
+      padding: 20px;
     }
 
-    .container{
-        width:
-            calc(100% - 14px);
-        padding-top:22px;
+    .result-panel.active {
+      display: block;
     }
 
-    .app{
-        padding:10px;
-        border-radius:18px;
+    .result-box {
+      background: rgba(32,212,155,.06);
+      border: 1px solid rgba(32,212,155,.2);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
     }
 
-    .upload{
-        min-height:360px;
-        padding:20px;
+    .result-icon {
+      font-size: 34px;
+      margin-bottom: 10px;
     }
 
-    .timeline-wrapper{
-        height:82px;
+    .result-title {
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 7px;
     }
 
-    .selection-info{
-        grid-template-columns:
-            1fr 1fr;
+    .result-text {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 16px;
     }
 
-    .selection-duration{
-        grid-column:
-            1 / -1;
-        grid-row:1;
-        order:-1;
+    /* MESSAGE */
+
+    .message {
+      display: none;
+      margin: 0 20px 20px;
+      padding: 12px 15px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.7;
     }
 
-    .actions{
-        grid-template-columns:1fr;
+    .message.show {
+      display: block;
     }
 
-    .reset-button{
-        width:100%;
+    .message.error {
+      background: rgba(255,85,119,.08);
+      border: 1px solid rgba(255,85,119,.2);
+      color: #ff9bae;
     }
 
-}
-
-@media(max-width:460px){
-
-    .hero h1{
-        font-size:32px;
+    .message.success {
+      background: rgba(32,212,155,.08);
+      border: 1px solid rgba(32,212,155,.2);
+      color: #7ce8c7;
     }
 
-    .video-info{
-        flex-direction:column;
-        align-items:flex-start;
+    /* FOOTER */
+
+    .footer {
+      text-align: center;
+      padding: 25px 0 0;
+      color: #667085;
+      font-size: 11px;
     }
 
-    .video-meta{
-        white-space:normal;
+    /* MOBILE */
+
+    @media (max-width: 700px) {
+
+      .app {
+        width: min(100% - 16px, 1200px);
+        padding-top: 10px;
+      }
+
+      .header {
+        padding-bottom: 18px;
+      }
+
+      .status {
+        display: none;
+      }
+
+      .upload-panel {
+        padding: 15px;
+      }
+
+      .upload-box {
+        min-height: 220px;
+      }
+
+      .info-row {
+        grid-template-columns: 1fr;
+      }
+
+      .time-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline {
+        height: 85px;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .btn {
+        width: 100%;
+      }
     }
-
-    .timeline-header{
-        flex-direction:column;
-        align-items:flex-start;
-    }
-
-    .quick-controls{
-        align-items:flex-start;
-        flex-direction:column;
-    }
-
-}
-
-/* =========================================================
-   END CSS
-   ========================================================= */
-
-</style>
-
+  </style>
 </head>
-
 
 <body>
 
+  <div class="app">
 
-<!-- =======================================================
-     HEADER
-     ======================================================= -->
+    <!-- HEADER -->
 
-<header class="header">
+    <header class="header">
 
-    <div class="brand">
+      <div class="brand">
 
-        <div class="brand-icon">
-            ✂
+        <div class="logo">
+          ✂
         </div>
 
-        <div class="brand-name">
-            NOVA CUT
+        <div class="brand-text">
+          <h1>NOVA CUT</h1>
+          <p>أداة سريعة لتجهيز وقص الفيديو</p>
         </div>
 
-    </div>
+      </div>
+
+      <div class="status">
+        <span class="status-dot"></span>
+        جاهز للعمل
+      </div>
+
+    </header>
 
 
-    <div class="header-right">
+    <main class="main">
 
-        <div class="badge">
-            تجهيز الفيديو للمونتاج
-        </div>
+      <!-- UPLOAD -->
 
-    </div>
+      <section class="panel upload-panel" id="uploadPanel">
 
-</header>
-
-
-<!-- =======================================================
-     MAIN
-     ======================================================= -->
-
-<main class="container">
-
-
-    <section class="hero">
-
-        <h1>
-            قص الفيديو بسهولة
-        </h1>
-
-        <p>
-            حدد الجزء الذي تريده من المشاهد واسحب الخطين ثم قص.
-        </p>
-
-    </section>
-
-
-    <section class="app">
-
-
-        <!-- =================================================
-             UPLOAD
-             ================================================= -->
-
-        <div
-            class="upload"
-            id="upload"
+        <label
+          class="upload-box"
+          for="videoInput"
+          id="uploadBox"
         >
+
+          <div>
 
             <div class="upload-icon">
-                🎬
+              🎬
             </div>
 
+            <div class="upload-title">
+              ارفع الفيديو للبدء
+            </div>
 
-            <h2>
-                ارفع الفيديو للبدء
-            </h2>
+            <div class="upload-subtitle">
+              اختر ملف فيديو من جهازك
+              <br>
+              المعالجة ستتم داخل المتصفح
+            </div>
 
+            <div class="upload-button">
+              اختيار الفيديو
+            </div>
 
-            <p>
-                اسحب الفيديو إلى هنا أو اختره من جهازك
-            </p>
+          </div>
 
+        </label>
 
-            <button
-                type="button"
-                class="primary-button"
-                id="chooseVideo"
-            >
-                📁 اختيار فيديو
-            </button>
-
-
-            <input
-                type="file"
-                id="videoInput"
-                class="hidden"
-                accept="video/*"
-            >
-
-        </div>
-
-
-        <!-- =================================================
-             EDITOR
-             ================================================= -->
-
-        <div
-            class="editor"
-            id="editor"
+        <input
+          id="videoInput"
+          type="file"
+          accept="video/*"
         >
 
+      </section>
 
-            <!-- =============================================
-                 VIDEO
-                 ============================================= -->
 
-            <div class="video-wrapper">
+      <!-- EDITOR -->
 
-                <video
-                    id="video"
-                    controls
-                    playsinline
-                    preload="metadata"
-                ></video>
+      <section
+        class="panel editor"
+        id="editor"
+      >
 
+        <!-- VIDEO -->
 
-                <div class="video-info">
+        <div class="video-area">
 
-                    <div
-                        class="video-name"
-                        id="videoName"
-                    >
-                        -
-                    </div>
+          <div class="video-wrapper">
 
+            <video
+              id="video"
+              controls
+              playsinline
+              preload="metadata"
+            ></video>
 
-                    <div
-                        class="video-meta"
-                        id="videoMeta"
-                    >
-                        -
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =============================================
-                 TIMELINE
-                 ============================================= -->
-
-            <div class="timeline-panel">
-
-
-                <div class="timeline-header">
-
-                    <div class="timeline-title">
-                        🎞️ تحديد الجزء
-                    </div>
-
-                    <div class="timeline-hint">
-                        اسحب الخطين لتحديد المقطع
-                    </div>
-
-                </div>
-
-
-                <!-- =========================================
-                     TIME INFORMATION
-                     ========================================= -->
-
-                <div class="selection-info">
-
-
-                    <div class="time-card start">
-
-                        <small>
-                            البداية
-                        </small>
-
-                        <strong
-                            id="startTime"
-                        >
-                            00:00
-                        </strong>
-
-                    </div>
-
-
-                    <div
-                        class="selection-duration"
-                        id="selectionDuration"
-                    >
-                        مدة المقطع
-                        <br>
-                        00:00
-                    </div>
-
-
-                    <div class="time-card end">
-
-                        <small>
-                            النهاية
-                        </small>
-
-                        <strong
-                            id="endTime"
-                        >
-                            00:00
-                        </strong>
-
-                    </div>
-
-
-                </div>
-
-
-                <!-- =========================================
-                     TIMELINE
-                     ========================================= -->
-
-                <div
-                    class="timeline-wrapper"
-                    id="timelineWrapper"
-                >
-
-
-                    <div
-                        class="thumbnails"
-                        id="thumbnails"
-                    ></div>
-
-
-                    <div
-                        class="selection-left-dark"
-                        id="leftDark"
-                    ></div>
-
-
-                    <div
-                        class="selection-right-dark"
-                        id="rightDark"
-                    ></div>
-
-
-                    <div
-                        class="selection-area"
-                        id="selectionArea"
-                    ></div>
-
-
-                    <div
-                        class="playhead"
-                        id="playhead"
-                    ></div>
-
-
-                    <div
-                        class="handle handle-left"
-                        id="leftHandle"
-                    >
-
-                        <div class="handle-line"></div>
-
-                        <div class="handle-tab"></div>
-
-                    </div>
-
-
-                    <div
-                        class="handle handle-right"
-                        id="rightHandle"
-                    >
-
-                        <div class="handle-line"></div>
-
-                        <div class="handle-tab"></div>
-
-                    </div>
-
-
-                    <div
-                        class="timeline-click-layer"
-                        id="timelineClickLayer"
-                    ></div>
-
-
-                </div>
-
-
-                <!-- =========================================
-                     QUICK CONTROLS
-                     ========================================= -->
-
-                <div class="quick-controls">
-
-
-                    <div class="quick-left">
-
-                        <button
-                            type="button"
-                            class="small-button"
-                            id="setStartButton"
-                        >
-                            بداية من الموضع الحالي
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="small-button"
-                            id="setEndButton"
-                        >
-                            نهاية عند الموضع الحالي
-                        </button>
-
-                    </div>
-
-
-                    <div class="quick-right">
-
-                        <span
-                            class="current-time"
-                            id="currentTime"
-                        >
-                            الموضع الحالي: 00:00
-                        </span>
-
-                    </div>
-
-
-                </div>
-
-
-                <!-- =========================================
-                     ACTIONS
-                     ========================================= -->
-
-                <div class="actions">
-
-
-                    <button
-                        type="button"
-                        class="cut-button"
-                        id="cutButton"
-                    >
-                        ✂ قص الجزء المحدد
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="reset-button"
-                        id="resetButton"
-                    >
-                        ↻ فيديو آخر
-                    </button>
-
-
-                </div>
-
-
-                <!-- =========================================
-                     STATUS
-                     ========================================= -->
-
-                <div
-                    class="status"
-                    id="status"
-                >
-
-                    <div class="status-row">
-
-                        <div
-                            class="status-message"
-                            id="statusMessage"
-                        >
-                            جاري المعالجة...
-                        </div>
-
-
-                        <div
-                            class="status-percent"
-                            id="statusPercent"
-                        >
-                            0%
-                        </div>
-
-                    </div>
-
-
-                    <div class="progress">
-
-                        <div
-                            class="progress-bar"
-                            id="progressBar"
-                        ></div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- =========================================
-                     RESULT
-                     ========================================= -->
-
-                <div
-                    class="result"
-                    id="result"
-                >
-
-                    <div class="result-title">
-                        ✅ تم تجهيز الفيديو
-                    </div>
-
-
-                    <div class="result-text">
-                        المقطع المحدد أصبح جاهزًا للتنزيل.
-                    </div>
-
-
-                    <a
-                        href="#"
-                        id="downloadButton"
-                        class="download-button"
-                        download="NOVA-CUT.mp4"
-                    >
-                        ⬇ تنزيل المقطع
-                    </a>
-
-                </div>
-
-
-            </div>
-
+          </div>
 
         </div>
 
 
-    </section>
+        <!-- INFORMATION -->
 
+        <div class="info-row">
 
-    <div class="footer">
-        NOVA CUT — Video Editing Tool
-    </div>
+          <div class="info-card">
 
+            <div class="info-label">
+              بداية القص
+            </div>
 
-</main>
+            <div
+              class="info-value"
+              id="startDisplay"
+            >
+              00:00.000
+            </div>
 
+          </div>
 
-<!-- =======================================================
-     JAVASCRIPT
-     ======================================================= -->
 
-<script type="module">
+          <div class="info-card">
 
+            <div class="info-label">
+              نهاية القص
+            </div>
 
-/* =========================================================
-   IMPORT FFMPEG
-   ========================================================= */
+            <div
+              class="info-value"
+              id="endDisplay"
+            >
+              00:00.000
+            </div>
 
-import {
-    FFmpeg
-} from
-"https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/+esm";
+          </div>
 
 
-import {
-    fetchFile,
-    toBlobURL
-} from
-"https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/+esm";
+          <div class="info-card">
 
+            <div class="info-label">
+              مدة المقطع
+            </div>
 
-/* =========================================================
-   DOM ELEMENTS
-   ========================================================= */
+            <div
+              class="info-value"
+              id="durationDisplay"
+            >
+              00:00.000
+            </div>
 
-const upload =
-    document.getElementById(
-        "upload"
-    );
+          </div>
 
+        </div>
 
-const editor =
-    document.getElementById(
-        "editor"
-    );
 
+        <!-- TIMELINE -->
 
-const chooseVideo =
-    document.getElementById(
-        "chooseVideo"
-    );
+        <div class="timeline-panel">
 
+          <div class="timeline-header">
 
-const videoInput =
-    document.getElementById(
-        "videoInput"
-    );
+            <div class="timeline-title">
+              خط الفيديو
+            </div>
 
+            <div class="timeline-help">
+              اسحب الخطين لتحديد الجزء المطلوب
+            </div>
 
-const video =
-    document.getElementById(
-        "video"
-    );
+          </div>
 
 
-const videoName =
-    document.getElementById(
-        "videoName"
-    );
+          <div
+            class="timeline"
+            id="timeline"
+          >
 
+            <div
+              class="thumbs"
+              id="thumbs"
+            ></div>
 
-const videoMeta =
-    document.getElementById(
-        "videoMeta"
-    );
 
+            <div
+              class="timeline-dark-left"
+              id="darkLeft"
+            ></div>
 
-const thumbnails =
-    document.getElementById(
-        "thumbnails"
-    );
 
+            <div
+              class="timeline-dark-right"
+              id="darkRight"
+            ></div>
 
-const timelineWrapper =
-    document.getElementById(
-        "timelineWrapper"
-    );
 
+            <div
+              class="selection"
+              id="selection"
+            ></div>
 
-const timelineClickLayer =
-    document.getElementById(
-        "timelineClickLayer"
-    );
 
+            <!-- PLAYHEAD -->
 
-const leftHandle =
-    document.getElementById(
-        "leftHandle"
-    );
+            <div
+              class="playhead"
+              id="playhead"
+              style="left:0%"
+            >
+              <div class="playhead-dot"></div>
+            </div>
 
 
-const rightHandle =
-    document.getElementById(
-        "rightHandle"
-    );
+            <!-- START HANDLE -->
 
+            <div
+              class="handle"
+              id="startHandle"
+              style="left:0%"
+            >
 
-const leftDark =
-    document.getElementById(
-        "leftDark"
-    );
+              <div class="handle-line"></div>
+              <div class="handle-grip"></div>
 
+            </div>
 
-const rightDark =
-    document.getElementById(
-        "rightDark"
-    );
 
+            <!-- END HANDLE -->
 
-const selectionArea =
-    document.getElementById(
-        "selectionArea"
-    );
+            <div
+              class="handle"
+              id="endHandle"
+              style="left:100%"
+            >
 
+              <div class="handle-line"></div>
+              <div class="handle-grip"></div>
 
-const playhead =
-    document.getElementById(
-        "playhead"
-    );
+            </div>
 
+          </div>
 
-const startTime =
-    document.getElementById(
-        "startTime"
-    );
+        </div>
 
 
-const endTime =
-    document.getElementById(
-        "endTime"
-    );
+        <!-- EXACT TIME -->
 
+        <div class="time-controls">
 
-const selectionDuration =
-    document.getElementById(
-        "selectionDuration"
-    );
+          <div class="time-box">
 
+            <label>
+              وقت البداية بالثواني
+            </label>
 
-const currentTime =
-    document.getElementById(
-        "currentTime"
-    );
+            <input
+              id="startInput"
+              type="number"
+              min="0"
+              step="0.001"
+              value="0"
+            >
 
+          </div>
 
-const setStartButton =
-    document.getElementById(
-        "setStartButton"
-    );
 
+          <div class="time-box">
 
-const setEndButton =
-    document.getElementById(
-        "setEndButton"
-    );
+            <label>
+              وقت النهاية بالثواني
+            </label>
 
+            <input
+              id="endInput"
+              type="number"
+              min="0"
+              step="0.001"
+              value="0"
+            >
 
-const cutButton =
-    document.getElementById(
-        "cutButton"
-    );
+          </div>
 
+        </div>
 
-const resetButton =
-    document.getElementById(
-        "resetButton"
-    );
 
+        <!-- BUTTONS -->
 
-const status =
-    document.getElementById(
-        "status"
-    );
+        <div class="controls">
 
+          <button
+            class="btn btn-secondary"
+            id="setStartBtn"
+          >
+            تحديد البداية من مكان التشغيل
+          </button>
 
-const statusMessage =
-    document.getElementById(
-        "statusMessage"
-    );
 
+          <button
+            class="btn btn-secondary"
+            id="setEndBtn"
+          >
+            تحديد النهاية من مكان التشغيل
+          </button>
 
-const statusPercent =
-    document.getElementById(
-        "statusPercent"
-    );
 
+          <button
+            class="btn btn-primary"
+            id="previewBtn"
+          >
+            ▶ معاينة الجزء المحدد
+          </button>
 
-const progressBar =
-    document.getElementById(
-        "progressBar"
-    );
 
+          <button
+            class="btn btn-danger"
+            id="resetBtn"
+          >
+            إعادة التحديد
+          </button>
 
-const result =
-    document.getElementById(
-        "result"
-    );
 
+          <button
+            class="btn btn-success"
+            id="cutBtn"
+          >
+            ✂ قص الفيديو
+          </button>
 
-const downloadButton =
-    document.getElementById(
-        "downloadButton"
-    );
+        </div>
 
 
-/* =========================================================
-   STATE
-   ========================================================= */
+        <!-- MESSAGE -->
 
-let selectedFile =
-    null;
+        <div
+          class="message"
+          id="message"
+        ></div>
 
 
-let sourceURL =
-    null;
+        <!-- PROCESS -->
 
+        <div
+          class="process-panel"
+          id="processPanel"
+        >
 
-let outputURL =
-    null;
+          <div class="progress-container">
 
+            <div
+              class="progress-bar"
+              id="progressBar"
+            ></div>
 
-let duration =
-    0;
+          </div>
 
+          <div
+            class="process-text"
+            id="processText"
+          >
+            جاري تجهيز المعالجة...
+          </div>
 
-let startSeconds =
-    0;
+        </div>
 
 
-let endSeconds =
-    0;
+        <!-- RESULT -->
 
+        <div
+          class="result-panel"
+          id="resultPanel"
+        >
 
-let dragging =
-    null;
+          <div class="result-box">
 
+            <div class="result-icon">
+              ✅
+            </div>
 
-let ffmpeg =
-    null;
+            <div class="result-title">
+              تم تجهيز الفيديو
+            </div>
 
+            <div class="result-text">
+              المقطع المحدد أصبح جاهزًا للتنزيل.
+            </div>
 
-let ffmpegReady =
-    false;
+            <button
+              class="btn btn-success"
+              id="downloadBtn"
+            >
+              ⬇ تنزيل الفيديو
+            </button>
 
+          </div>
 
-let ffmpegLoading =
-    false;
+        </div>
 
+      </section>
 
-let thumbnailCount =
-    32;
+    </main>
 
 
-/* =========================================================
-   OPEN FILE
-   ========================================================= */
+    <footer class="footer">
+      NOVA CUT — Video Editing Tool
+    </footer>
 
-chooseVideo.addEventListener(
-    "click",
-    () => {
+  </div>
 
-        videoInput.click();
+
+  <!--
+    مهم:
+    هذا الملف مسؤول عن الواجهة فقط.
+
+    المعالجة الحقيقية سنضعها في:
+    processor.js
+
+    ومحرك الفيديو سنضعه في:
+    engine/ffmpeg-loader.js
+
+    لا نضع FFmpeg هنا حتى نفصل الواجهة
+    عن المعالجة ونحل مشكلة الخطأ.
+  -->
+
+  <script type="module">
+
+    /*
+      ============================================================
+      NOVA CUT — واجهة المستخدم
+      ============================================================
+    */
+
+    const videoInput =
+      document.getElementById("videoInput");
+
+    const uploadPanel =
+      document.getElementById("uploadPanel");
+
+    const uploadBox =
+      document.getElementById("uploadBox");
+
+    const editor =
+      document.getElementById("editor");
+
+    const video =
+      document.getElementById("video");
+
+    const timeline =
+      document.getElementById("timeline");
+
+    const thumbs =
+      document.getElementById("thumbs");
+
+    const startHandle =
+      document.getElementById("startHandle");
+
+    const endHandle =
+      document.getElementById("endHandle");
+
+    const selection =
+      document.getElementById("selection");
+
+    const darkLeft =
+      document.getElementById("darkLeft");
+
+    const darkRight =
+      document.getElementById("darkRight");
+
+    const playhead =
+      document.getElementById("playhead");
+
+    const startInput =
+      document.getElementById("startInput");
+
+    const endInput =
+      document.getElementById("endInput");
+
+    const startDisplay =
+      document.getElementById("startDisplay");
+
+    const endDisplay =
+      document.getElementById("endDisplay");
+
+    const durationDisplay =
+      document.getElementById("durationDisplay");
+
+    const setStartBtn =
+      document.getElementById("setStartBtn");
+
+    const setEndBtn =
+      document.getElementById("setEndBtn");
+
+    const previewBtn =
+      document.getElementById("previewBtn");
+
+    const resetBtn =
+      document.getElementById("resetBtn");
+
+    const cutBtn =
+      document.getElementById("cutBtn");
+
+    const message =
+      document.getElementById("message");
+
+    const processPanel =
+      document.getElementById("processPanel");
+
+    const progressBar =
+      document.getElementById("progressBar");
+
+    const processText =
+      document.getElementById("processText");
+
+    const resultPanel =
+      document.getElementById("resultPanel");
+
+    const downloadBtn =
+      document.getElementById("downloadBtn");
+
+
+    /*
+      ============================================================
+      الحالة
+      ============================================================
+    */
+
+    let videoFile = null;
+
+    let videoURL = null;
+
+    let outputURL = null;
+
+    let videoDuration = 0;
+
+    let startTime = 0;
+
+    let endTime = 0;
+
+    let dragging = null;
+
+    let previewTimer = null;
+
+
+    /*
+      ============================================================
+      أدوات الوقت
+      ============================================================
+    */
+
+    function formatTime(seconds) {
+
+      if (!Number.isFinite(seconds)) {
+        seconds = 0;
+      }
+
+      seconds =
+        Math.max(0, seconds);
+
+      const minutes =
+        Math.floor(seconds / 60);
+
+      const remaining =
+        seconds % 60;
+
+      const mins =
+        String(minutes)
+          .padStart(2, "0");
+
+      const secs =
+        remaining
+          .toFixed(3)
+          .padStart(6, "0");
+
+      return `${mins}:${secs}`;
+    }
+
+
+    /*
+      ============================================================
+      الرسائل
+      ============================================================
+    */
+
+    function showMessage(text, type = "error") {
+
+      message.textContent = text;
+
+      message.className =
+        "message show " + type;
 
     }
-);
 
 
-/* =========================================================
-   FILE CHANGE
-   ========================================================= */
+    function hideMessage() {
 
-videoInput.addEventListener(
-    "change",
-    async event => {
+      message.className =
+        "message";
+
+      message.textContent = "";
+
+    }
+
+
+    /*
+      ============================================================
+      تحديث المعلومات
+      ============================================================
+    */
+
+    function updateDisplays() {
+
+      const selectedDuration =
+        Math.max(
+          0,
+          endTime - startTime
+        );
+
+      startDisplay.textContent =
+        formatTime(startTime);
+
+      endDisplay.textContent =
+        formatTime(endTime);
+
+      durationDisplay.textContent =
+        formatTime(selectedDuration);
+
+      startInput.value =
+        startTime.toFixed(3);
+
+      endInput.value =
+        endTime.toFixed(3);
+
+      updateTimelineVisuals();
+
+    }
+
+
+    /*
+      ============================================================
+      تحديث شكل الخط الزمني
+      ============================================================
+    */
+
+    function updateTimelineVisuals() {
+
+      if (!videoDuration) {
+        return;
+      }
+
+      const startPercent =
+        (startTime / videoDuration) * 100;
+
+      const endPercent =
+        (endTime / videoDuration) * 100;
+
+      selection.style.left =
+        startPercent + "%";
+
+      selection.style.width =
+        (endPercent - startPercent) + "%";
+
+      darkLeft.style.width =
+        startPercent + "%";
+
+      darkRight.style.width =
+        (100 - endPercent) + "%";
+
+      startHandle.style.left =
+        startPercent + "%";
+
+      endHandle.style.left =
+        endPercent + "%";
+
+    }
+
+
+    /*
+      ============================================================
+      تحديث مؤشر التشغيل
+      ============================================================
+    */
+
+    function updatePlayhead() {
+
+      if (!videoDuration) {
+        return;
+      }
+
+      const percent =
+        (video.currentTime / videoDuration) * 100;
+
+      playhead.style.left =
+        Math.max(
+          0,
+          Math.min(100, percent)
+        ) + "%";
+
+    }
+
+
+    /*
+      ============================================================
+      اختيار الفيديو
+      ============================================================
+    */
+
+    videoInput.addEventListener(
+      "change",
+      async function(event) {
 
         const file =
-            event.target.files[0];
+          event.target.files &&
+          event.target.files[0];
 
-        if(!file){
-            return;
+        if (!file) {
+          return;
         }
 
-        await openVideo(file);
+        await loadVideo(file);
 
-    }
-);
-
-
-/* =========================================================
-   OPEN VIDEO
-   ========================================================= */
-
-async function openVideo(file){
-
-    if(
-        !file.type ||
-        !file.type.startsWith(
-            "video/"
-        )
-    ){
-
-        alert(
-            "يرجى اختيار ملف فيديو فقط."
-        );
-
-        return;
-
-    }
-
-
-    selectedFile =
-        file;
-
-
-    if(sourceURL){
-
-        URL.revokeObjectURL(
-            sourceURL
-        );
-
-    }
-
-
-    if(outputURL){
-
-        URL.revokeObjectURL(
-            outputURL
-        );
-
-        outputURL =
-            null;
-
-    }
-
-
-    result.classList.remove(
-        "show"
+      }
     );
 
 
-    status.classList.remove(
-        "show"
+    /*
+      ============================================================
+      سحب وإفلات
+      ============================================================
+    */
+
+    uploadBox.addEventListener(
+      "dragover",
+      function(event) {
+
+        event.preventDefault();
+
+        uploadBox.style.borderColor =
+          "var(--accent)";
+
+      }
     );
 
 
-    progressBar.style.width =
-        "0%";
+    uploadBox.addEventListener(
+      "dragleave",
+      function() {
+
+        uploadBox.style.borderColor =
+          "rgba(108,99,255,.4)";
+
+      }
+    );
 
 
-    statusPercent.textContent =
-        "0%";
+    uploadBox.addEventListener(
+      "drop",
+      async function(event) {
+
+        event.preventDefault();
+
+        uploadBox.style.borderColor =
+          "rgba(108,99,255,.4)";
+
+        const files =
+          event.dataTransfer.files;
+
+        if (!files || !files.length) {
+          return;
+        }
+
+        const file =
+          files[0];
+
+        if (!file.type.startsWith("video/")) {
+
+          showMessage(
+            "الملف الذي اخترته ليس فيديو."
+          );
+
+          return;
+        }
+
+        await loadVideo(file);
+
+      }
+    );
 
 
-    sourceURL =
-        URL.createObjectURL(
-            file
+    /*
+      ============================================================
+      تحميل الفيديو
+      ============================================================
+    */
+
+    async function loadVideo(file) {
+
+      hideMessage();
+
+      videoFile = file;
+
+      if (videoURL) {
+
+        URL.revokeObjectURL(
+          videoURL
         );
 
+      }
 
-    video.src =
-        sourceURL;
+      videoURL =
+        URL.createObjectURL(file);
 
+      video.src =
+        videoURL;
 
-    video.load();
+      video.load();
 
-
-    videoName.textContent =
-        file.name;
-
-
-    videoMeta.textContent =
-        formatBytes(
-            file.size
-        );
-
-
-    upload.style.display =
+      uploadPanel.style.display =
         "none";
 
+      editor.classList.add(
+        "active"
+      );
 
-    editor.classList.add(
-        "show"
-    );
+      resultPanel.classList.remove(
+        "active"
+      );
 
+      processPanel.classList.remove(
+        "active"
+      );
 
-    await waitForMetadata();
+      await waitForMetadata();
 
-
-    duration =
+      videoDuration =
         video.duration;
 
+      startTime = 0;
 
-    if(
-        !Number.isFinite(duration) ||
-        duration <= 0
-    ){
+      endTime =
+        videoDuration;
 
-        alert(
-            "تعذر قراءة مدة الفيديو."
-        );
+      updateDisplays();
 
-        resetEditor();
-
-        return;
+      await generateThumbnails();
 
     }
 
 
-    startSeconds =
-        0;
+    /*
+      ============================================================
+      انتظار بيانات الفيديو
+      ============================================================
+    */
 
+    function waitForMetadata() {
 
-    endSeconds =
-        duration;
+      return new Promise(
+        function(resolve, reject) {
 
+          if (
+            Number.isFinite(video.duration) &&
+            video.duration > 0
+          ) {
 
-    updateSelectionUI();
+            resolve();
 
+            return;
 
-    await generateThumbnails();
+          }
 
-}
+          const onLoaded =
+            function() {
 
+              cleanup();
 
-/* =========================================================
-   WAIT FOR VIDEO METADATA
-   ========================================================= */
+              resolve();
 
-function waitForMetadata(){
+            };
 
-    return new Promise(
-        resolve => {
+          const onError =
+            function() {
 
-            if(
-                video.readyState >= 1 &&
-                Number.isFinite(
-                    video.duration
+              cleanup();
+
+              reject(
+                new Error(
+                  "تعذر قراءة الفيديو."
                 )
-            ){
+              );
 
-                resolve();
+            };
 
-                return;
+          function cleanup() {
 
-            }
-
-
-            const handler =
-                () => {
-
-                    video.removeEventListener(
-                        "loadedmetadata",
-                        handler
-                    );
-
-                    resolve();
-
-                };
-
-
-            video.addEventListener(
-                "loadedmetadata",
-                handler
+            video.removeEventListener(
+              "loadedmetadata",
+              onLoaded
             );
+
+            video.removeEventListener(
+              "error",
+              onError
+            );
+
+          }
+
+          video.addEventListener(
+            "loadedmetadata",
+            onLoaded
+          );
+
+          video.addEventListener(
+            "error",
+            onError
+          );
 
         }
-    );
-
-}
-
-
-/* =========================================================
-   GENERATE THUMBNAILS
-   ========================================================= */
-
-async function generateThumbnails(){
-
-    thumbnails.innerHTML =
-        "";
-
-
-    const count =
-        Math.max(
-            12,
-            Math.min(
-                thumbnailCount,
-                48
-            )
-        );
-
-
-    for(
-        let i = 0;
-        i < count;
-        i++
-    ){
-
-        const item =
-            document.createElement(
-                "div"
-            );
-
-
-        item.className =
-            "thumbnail";
-
-
-        const loading =
-            document.createElement(
-                "div"
-            );
-
-
-        loading.className =
-            "thumbnail-loading";
-
-
-        loading.textContent =
-            "...";
-
-
-        item.appendChild(
-            loading
-        );
-
-
-        thumbnails.appendChild(
-            item
-        );
+      );
 
     }
 
 
-    const items =
-        Array.from(
-            thumbnails.children
+    /*
+      ============================================================
+      إنشاء صور الخط الزمني
+      ============================================================
+    */
+
+    async function generateThumbnails() {
+
+      thumbs.innerHTML = "";
+
+      const count = 30;
+
+      const canvas =
+        document.createElement(
+          "canvas"
         );
 
+      const context =
+        canvas.getContext(
+          "2d"
+        );
 
-    for(
+      canvas.width = 320;
+
+      canvas.height = 180;
+
+      for (
         let i = 0;
         i < count;
         i++
-    ){
+      ) {
 
         const percentage =
-            count === 1
-            ? 0
-            : i /
-              (count - 1);
-
+          i / (count - 1);
 
         const time =
-            duration *
-            percentage;
+          videoDuration *
+          percentage;
 
+        try {
 
-        try{
+          await seekVideo(
+            time
+          );
 
-            const canvas =
-                await createThumbnail(
-                    time
-                );
+          context.drawImage(
+            video,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
 
-
-            items[i].innerHTML =
-                "";
-
-
-            items[i].appendChild(
-                canvas
+          const image =
+            document.createElement(
+              "img"
             );
 
+          image.className =
+            "thumb";
 
-            const number =
-                document.createElement(
-                    "div"
-                );
-
-
-            number.className =
-                "thumbnail-number";
-
-
-            number.textContent =
-                String(i + 1);
-
-
-            items[i].appendChild(
-                number
+          image.src =
+            canvas.toDataURL(
+              "image/jpeg",
+              0.55
             );
 
+          thumbs.appendChild(
+            image
+          );
 
-        }catch(error){
+        } catch (error) {
 
-            items[i].innerHTML =
-                "";
+          /*
+            في حالة عدم نجاح إحدى الصور
+            لا نوقف البرنامج كاملًا.
+          */
 
-
-            const fallback =
-                document.createElement(
-                    "div"
-                );
-
-
-            fallback.className =
-                "thumbnail-loading";
-
-
-            fallback.textContent =
-                "🎞️";
-
-
-            items[i].appendChild(
-                fallback
+          const image =
+            document.createElement(
+              "div"
             );
+
+          image.className =
+            "thumb";
+
+          image.style.background =
+            "#111827";
+
+          thumbs.appendChild(
+            image
+          );
 
         }
 
+      }
+
+      video.currentTime = 0;
+
+      updatePlayhead();
+
     }
 
-}
 
+    /*
+      ============================================================
+      الانتقال إلى وقت معين
+      ============================================================
+    */
 
-/* =========================================================
-   CREATE THUMBNAIL
-   ========================================================= */
+    function seekVideo(time) {
 
-function createThumbnail(
-    time
-){
+      return new Promise(
+        function(resolve) {
 
-    return new Promise(
-        resolve => {
+          const target =
+            Math.max(
+              0,
+              Math.min(
+                videoDuration,
+                time
+              )
+            );
 
-            const canvas =
-                document.createElement(
-                    "canvas"
-                );
+          const handler =
+            function() {
 
-
-            canvas.width =
-                320;
-
-
-            canvas.height =
-                180;
-
-
-            const ctx =
-                canvas.getContext(
-                    "2d"
-                );
-
-
-            const originalTime =
-                video.currentTime;
-
-
-            const handler =
-                () => {
-
-                    video.removeEventListener(
-                        "seeked",
-                        handler
-                    );
-
-
-                    try{
-
-                        ctx.drawImage(
-                            video,
-                            0,
-                            0,
-                            canvas.width,
-                            canvas.height
-                        );
-
-                    }catch(error){
-
-                        ctx.fillStyle =
-                            "#151c27";
-
-                        ctx.fillRect(
-                            0,
-                            0,
-                            canvas.width,
-                            canvas.height
-                        );
-
-                    }
-
-
-                    video.currentTime =
-                        originalTime;
-
-
-                    resolve(
-                        canvas
-                    );
-
-                };
-
-
-            video.addEventListener(
+              video.removeEventListener(
                 "seeked",
                 handler
-            );
+              );
 
+              resolve();
 
-            video.currentTime =
-                Math.max(
-                    0,
-                    Math.min(
-                        duration,
-                        time
-                    )
-                );
+            };
+
+          video.addEventListener(
+            "seeked",
+            handler
+          );
+
+          video.currentTime =
+            target;
 
         }
-    );
-
-}
-
-
-/* =========================================================
-   UPDATE SELECTION
-   ========================================================= */
-
-function updateSelectionUI(){
-
-    if(!duration){
-        return;
-    }
-
-
-    startSeconds =
-        Math.max(
-            0,
-            Math.min(
-                startSeconds,
-                duration
-            )
-        );
-
-
-    endSeconds =
-        Math.max(
-            0,
-            Math.min(
-                endSeconds,
-                duration
-            )
-        );
-
-
-    if(
-        endSeconds <= startSeconds
-    ){
-
-        endSeconds =
-            Math.min(
-                duration,
-                startSeconds + .1
-            );
+      );
 
     }
 
 
-    const startPercent =
-        (
-            startSeconds /
-            duration
-        ) * 100;
+    /*
+      ============================================================
+      تشغيل الفيديو
+      ============================================================
+    */
 
-
-    const endPercent =
-        (
-            endSeconds /
-            duration
-        ) * 100;
-
-
-    leftHandle.style.left =
-        `calc(${startPercent}% - 9px)`;
-
-
-    rightHandle.style.left =
-        `calc(${endPercent}% - 9px)`;
-
-
-    rightHandle.style.right =
-        "auto";
-
-
-    leftDark.style.width =
-        `${startPercent}%`;
-
-
-    rightDark.style.width =
-        `${100 - endPercent}%`;
-
-
-    selectionArea.style.left =
-        `${startPercent}%`;
-
-
-    selectionArea.style.right =
-        `${100 - endPercent}%`;
-
-
-    startTime.textContent =
-        formatTime(
-            startSeconds
-        );
-
-
-    endTime.textContent =
-        formatTime(
-            endSeconds
-        );
-
-
-    selectionDuration.innerHTML =
-        "مدة المقطع<br>" +
-        formatTime(
-            endSeconds -
-            startSeconds
-        );
-
-
-    updatePlayhead();
-
-}
-
-
-/* =========================================================
-   PLAYHEAD
-   ========================================================= */
-
-function updatePlayhead(){
-
-    if(!duration){
-        return;
-    }
-
-
-    const percentage =
-        (
-            video.currentTime /
-            duration
-        ) * 100;
-
-
-    playhead.style.left =
-        `${percentage}%`;
-
-
-    currentTime.textContent =
-        "الموضع الحالي: " +
-        formatTime(
-            video.currentTime
-        );
-
-}
-
-
-/* =========================================================
-   VIDEO TIME UPDATE
-   ========================================================= */
-
-video.addEventListener(
-    "timeupdate",
-    () => {
+    video.addEventListener(
+      "timeupdate",
+      function() {
 
         updatePlayhead();
 
-    }
-);
-
-
-/* =========================================================
-   VIDEO CLICK / TIMELINE CLICK
-   ========================================================= */
-
-timelineClickLayer.addEventListener(
-    "pointerdown",
-    event => {
-
-        if(
-            event.target.closest(
-                ".handle"
-            )
-        ){
-            return;
-        }
-
-
-        const rect =
-            timelineWrapper.getBoundingClientRect();
-
-
-        const x =
-            event.clientX -
-            rect.left;
-
-
-        const percentage =
-            Math.max(
-                0,
-                Math.min(
-                    1,
-                    x /
-                    rect.width
-                )
-            );
-
-
-        const time =
-            percentage *
-            duration;
-
-
-        video.currentTime =
-            time;
-
-
-        updatePlayhead();
-
-    }
-);
-
-
-/* =========================================================
-   LEFT HANDLE
-   ========================================================= */
-
-leftHandle.addEventListener(
-    "pointerdown",
-    event => {
-
-        event.preventDefault();
-
-        dragging =
-            "start";
-
-
-        leftHandle.setPointerCapture(
-            event.pointerId
-        );
-
-    }
-);
-
-
-/* =========================================================
-   RIGHT HANDLE
-   ========================================================= */
-
-rightHandle.addEventListener(
-    "pointerdown",
-    event => {
-
-        event.preventDefault();
-
-        dragging =
-            "end";
-
-
-        rightHandle.setPointerCapture(
-            event.pointerId
-        );
-
-    }
-);
-
-
-/* =========================================================
-   POINTER MOVE
-   ========================================================= */
-
-document.addEventListener(
-    "pointermove",
-    event => {
-
-        if(!dragging){
-            return;
-        }
-
-
-        const rect =
-            timelineWrapper.getBoundingClientRect();
-
-
-        const x =
-            event.clientX -
-            rect.left;
-
-
-        let percentage =
-            x /
-            rect.width;
-
-
-        percentage =
-            Math.max(
-                0,
-                Math.min(
-                    1,
-                    percentage
-                )
-            );
-
-
-        const time =
-            percentage *
-            duration;
-
-
-        const minimumGap =
-            Math.min(
-                .1,
-                duration / 100
-            );
-
-
-        if(
-            dragging === "start"
-        ){
-
-            startSeconds =
-                Math.min(
-                    time,
-                    endSeconds -
-                    minimumGap
-                );
-
-
-            startSeconds =
-                Math.max(
-                    0,
-                    startSeconds
-                );
-
-        }
-
-
-        if(
-            dragging === "end"
-        ){
-
-            endSeconds =
-                Math.max(
-                    time,
-                    startSeconds +
-                    minimumGap
-                );
-
-
-            endSeconds =
-                Math.min(
-                    duration,
-                    endSeconds
-                );
-
-        }
-
-
-        updateSelectionUI();
-
-    }
-);
-
-
-/* =========================================================
-   POINTER UP
-   ========================================================= */
-
-document.addEventListener(
-    "pointerup",
-    () => {
-
-        dragging =
-            null;
-
-    }
-);
-
-
-/* =========================================================
-   SET START
-   ========================================================= */
-
-setStartButton.addEventListener(
-    "click",
-    () => {
-
-        const current =
-            video.currentTime;
-
-
-        if(
-            current <
-            endSeconds
-        ){
-
-            startSeconds =
-                current;
-
-            updateSelectionUI();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   SET END
-   ========================================================= */
-
-setEndButton.addEventListener(
-    "click",
-    () => {
-
-        const current =
-            video.currentTime;
-
-
-        if(
-            current >
-            startSeconds
-        ){
-
-            endSeconds =
-                current;
-
-            updateSelectionUI();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   LOAD FFMPEG
-   ========================================================= */
-
-async function loadFFmpeg(){
-
-    if(ffmpegReady){
-        return;
-    }
-
-
-    if(ffmpegLoading){
-
-        while(ffmpegLoading){
-
-            await sleep(100);
-
-        }
-
-        return;
-
-    }
-
-
-    ffmpegLoading =
-        true;
-
-
-    setStatus(
-        "جاري تشغيل محرك قص الفيديو...",
-        5
+      }
     );
 
 
-    try{
+    /*
+      ============================================================
+      تحديد البداية من مكان التشغيل
+      ============================================================
+    */
 
-        ffmpeg =
-            new FFmpeg();
+    setStartBtn.addEventListener(
+      "click",
+      function() {
 
+        const current =
+          video.currentTime;
 
-        ffmpeg.on(
-            "progress",
-            event => {
+        if (
+          current >= endTime
+        ) {
 
-                let percent =
-                    Number(
-                        event.progress
-                    ) * 100;
+          showMessage(
+            "يجب أن تكون البداية قبل النهاية."
+          );
 
-
-                if(
-                    !Number.isFinite(
-                        percent
-                    )
-                ){
-
-                    percent =
-                        0;
-
-                }
-
-
-                percent =
-                    Math.max(
-                        0,
-                        Math.min(
-                            100,
-                            percent
-                        )
-                    );
-
-
-                setStatus(
-                    "جاري قص الفيديو...",
-                    percent
-                );
-
-            }
-        );
-
-
-        const base =
-            "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
-
-
-        const coreURL =
-            await toBlobURL(
-                `${base}/ffmpeg-core.js`,
-                "text/javascript"
-            );
-
-
-        const wasmURL =
-            await toBlobURL(
-                `${base}/ffmpeg-core.wasm`,
-                "application/wasm"
-            );
-
-
-        await ffmpeg.load({
-            coreURL,
-            wasmURL
-        });
-
-
-        ffmpegReady =
-            true;
-
-
-    }catch(error){
-
-        console.error(
-            "FFmpeg loading error:",
-            error
-        );
-
-
-        ffmpegReady =
-            false;
-
-
-        throw error;
-
-
-    }finally{
-
-        ffmpegLoading =
-            false;
-
-    }
-
-}
-
-
-/* =========================================================
-   CUT VIDEO
-   ========================================================= */
-
-cutButton.addEventListener(
-    "click",
-    async () => {
-
-        if(!selectedFile){
-
-            alert(
-                "اختر فيديو أولًا."
-            );
-
-            return;
-
+          return;
         }
 
+        startTime =
+          current;
 
-        if(
-            !duration ||
-            duration <= 0
-        ){
+        updateDisplays();
 
-            alert(
-                "مدة الفيديو غير صالحة."
-            );
-
-            return;
-
-        }
-
-
-        const start =
-            Number(
-                startSeconds
-            );
-
-
-        const end =
-            Number(
-                endSeconds
-            );
-
-
-        if(
-            !Number.isFinite(start) ||
-            !Number.isFinite(end)
-        ){
-
-            alert(
-                "التحديد غير صالح."
-            );
-
-            return;
-
-        }
-
-
-        if(
-            end <= start
-        ){
-
-            alert(
-                "يجب أن تكون النهاية بعد البداية."
-            );
-
-            return;
-
-        }
-
-
-        const clipDuration =
-            end -
-            start;
-
-
-        if(
-            clipDuration < .05
-        ){
-
-            alert(
-                "المقطع قصير جدًا."
-            );
-
-            return;
-
-        }
-
-
-        cutButton.disabled =
-            true;
-
-
-        resetButton.disabled =
-            true;
-
-
-        result.classList.remove(
-            "show"
-        );
-
-
-        try{
-
-            await loadFFmpeg();
-
-
-            setStatus(
-                "جاري إرسال الفيديو إلى محرك القص...",
-                10
-            );
-
-
-            const inputName =
-                "input_video";
-
-
-            const outputName =
-                "nova-cut-result.mp4";
-
-
-            try{
-
-                await ffmpeg.deleteFile(
-                    inputName
-                );
-
-            }catch(error){}
-
-
-            try{
-
-                await ffmpeg.deleteFile(
-                    outputName
-                );
-
-            }catch(error){}
-
-
-            await ffmpeg.writeFile(
-                inputName,
-                await fetchFile(
-                    selectedFile
-                )
-            );
-
-
-            setStatus(
-                "جاري قص الجزء المحدد...",
-                15
-            );
-
-
-            /*
-             * نستخدم إعادة ترميز للفيديو.
-             *
-             * هذا أبطأ من القص بدون إعادة ترميز،
-             * لكنه أكثر توافقًا مع اختلاف
-             * نقاط البداية والنهاية.
-             */
-
-
-            const resultCode =
-                await ffmpeg.exec([
-
-                    "-ss",
-                    String(start),
-
-                    "-i",
-                    inputName,
-
-                    "-t",
-                    String(clipDuration),
-
-                    "-map",
-                    "0:v:0",
-
-                    "-map",
-                    "0:a:0?",
-
-                    "-c:v",
-                    "libx264",
-
-                    "-preset",
-                    "ultrafast",
-
-                    "-crf",
-                    "23",
-
-                    "-pix_fmt",
-                    "yuv420p",
-
-                    "-c:a",
-                    "aac",
-
-                    "-b:a",
-                    "128k",
-
-                    "-movflags",
-                    "+faststart",
-
-                    outputName
-
-                ]);
-
-
-            console.log(
-                "FFmpeg result:",
-                resultCode
-            );
-
-
-            setStatus(
-                "جاري تجهيز ملف التنزيل...",
-                96
-            );
-
-
-            const data =
-                await ffmpeg.readFile(
-                    outputName
-                );
-
-
-            if(
-                !data ||
-                !data.length
-            ){
-
-                throw new Error(
-                    "Empty output file"
-                );
-
-            }
-
-
-            const blob =
-                new Blob(
-                    [
-                        data.buffer
-                    ],
-                    {
-                        type:
-                            "video/mp4"
-                    }
-                );
-
-
-            if(outputURL){
-
-                URL.revokeObjectURL(
-                    outputURL
-                );
-
-            }
-
-
-            outputURL =
-                URL.createObjectURL(
-                    blob
-                );
-
-
-            downloadButton.href =
-                outputURL;
-
-
-            downloadButton.download =
-                makeOutputName(
-                    selectedFile.name
-                );
-
-
-            setStatus(
-                "تم قص الفيديو بنجاح.",
-                100
-            );
-
-
-            result.classList.add(
-                "show"
-            );
-
-
-            result.scrollIntoView({
-                behavior:"smooth",
-                block:"center"
-            });
-
-
-        }catch(error){
-
-            console.error(
-                "CUT ERROR:",
-                error
-            );
-
-
-            setStatus(
-                "تعذر معالجة الفيديو.",
-                0
-            );
-
-
-            alert(
-                "حدث خطأ أثناء معالجة الفيديو.\n\n" +
-                "إذا كنت تفتح index.html مباشرة من جهازك، " +
-                "جرّب تشغيله من استضافة ويب أو GitHub Pages، " +
-                "لأن محرك الفيديو يحتاج إلى تحميل ملفات المعالجة من الإنترنت."
-            );
-
-
-        }finally{
-
-            cutButton.disabled =
-                false;
-
-
-            resetButton.disabled =
-                false;
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   STATUS
-   ========================================================= */
-
-function setStatus(
-    message,
-    percent
-){
-
-    status.classList.add(
-        "show"
+      }
     );
 
 
-    statusMessage.textContent =
-        message;
+    /*
+      ============================================================
+      تحديد النهاية من مكان التشغيل
+      ============================================================
+    */
+
+    setEndBtn.addEventListener(
+      "click",
+      function() {
+
+        const current =
+          video.currentTime;
+
+        if (
+          current <= startTime
+        ) {
+
+          showMessage(
+            "يجب أن تكون النهاية بعد البداية."
+          );
+
+          return;
+        }
+
+        endTime =
+          current;
+
+        updateDisplays();
+
+      }
+    );
 
 
-    const safePercent =
-        Math.max(
+    /*
+      ============================================================
+      إدخال وقت البداية يدويًا
+      ============================================================
+    */
+
+    startInput.addEventListener(
+      "change",
+      function() {
+
+        let value =
+          Number(
+            startInput.value
+          );
+
+        if (!Number.isFinite(value)) {
+          value = 0;
+        }
+
+        value =
+          Math.max(
             0,
             Math.min(
-                100,
-                Number(percent) || 0
+              value,
+              endTime - 0.001
             )
-        );
+          );
 
+        startTime =
+          value;
 
-    progressBar.style.width =
-        `${safePercent}%`;
+        updateDisplays();
 
-
-    statusPercent.textContent =
-        `${Math.round(
-            safePercent
-        )}%`;
-
-}
-
-
-/* =========================================================
-   RESET
-   ========================================================= */
-
-resetButton.addEventListener(
-    "click",
-    () => {
-
-        resetEditor();
-
-    }
-);
-
-
-/* =========================================================
-   RESET EDITOR
-   ========================================================= */
-
-function resetEditor(){
-
-    if(sourceURL){
-
-        URL.revokeObjectURL(
-            sourceURL
-        );
-
-        sourceURL =
-            null;
-
-    }
-
-
-    if(outputURL){
-
-        URL.revokeObjectURL(
-            outputURL
-        );
-
-        outputURL =
-            null;
-
-    }
-
-
-    selectedFile =
-        null;
-
-
-    duration =
-        0;
-
-
-    startSeconds =
-        0;
-
-
-    endSeconds =
-        0;
-
-
-    dragging =
-        null;
-
-
-    video.pause();
-
-
-    video.removeAttribute(
-        "src"
+      }
     );
 
 
-    video.load();
+    /*
+      ============================================================
+      إدخال وقت النهاية يدويًا
+      ============================================================
+    */
 
+    endInput.addEventListener(
+      "change",
+      function() {
 
-    thumbnails.innerHTML =
-        "";
+        let value =
+          Number(
+            endInput.value
+          );
 
-
-    result.classList.remove(
-        "show"
-    );
-
-
-    status.classList.remove(
-        "show"
-    );
-
-
-    progressBar.style.width =
-        "0%";
-
-
-    upload.style.display =
-        "flex";
-
-
-    editor.classList.remove(
-        "show"
-    );
-
-
-    videoInput.value =
-        "";
-
-}
-
-
-/* =========================================================
-   DRAG & DROP
-   ========================================================= */
-
-upload.addEventListener(
-    "dragover",
-    event => {
-
-        event.preventDefault();
-
-        upload.classList.add(
-            "dragging"
-        );
-
-    }
-);
-
-
-upload.addEventListener(
-    "dragleave",
-    () => {
-
-        upload.classList.remove(
-            "dragging"
-        );
-
-    }
-);
-
-
-upload.addEventListener(
-    "drop",
-    async event => {
-
-        event.preventDefault();
-
-
-        upload.classList.remove(
-            "dragging"
-        );
-
-
-        const file =
-            event.dataTransfer.files[0];
-
-
-        if(!file){
-            return;
+        if (!Number.isFinite(value)) {
+          value = videoDuration;
         }
 
-
-        if(
-            !file.type.startsWith(
-                "video/"
+        value =
+          Math.min(
+            videoDuration,
+            Math.max(
+              value,
+              startTime + 0.001
             )
-        ){
+          );
 
-            alert(
-                "يرجى إسقاط فيديو فقط."
+        endTime =
+          value;
+
+        updateDisplays();
+
+      }
+    );
+
+
+    /*
+      ============================================================
+      التعامل مع سحب الخطوط
+      ============================================================
+    */
+
+    startHandle.addEventListener(
+      "pointerdown",
+      function(event) {
+
+        event.preventDefault();
+
+        dragging =
+          "start";
+
+        startHandle.setPointerCapture(
+          event.pointerId
+        );
+
+      }
+    );
+
+
+    endHandle.addEventListener(
+      "pointerdown",
+      function(event) {
+
+        event.preventDefault();
+
+        dragging =
+          "end";
+
+        endHandle.setPointerCapture(
+          event.pointerId
+        );
+
+      }
+    );
+
+
+    document.addEventListener(
+      "pointermove",
+      function(event) {
+
+        if (!dragging) {
+          return;
+        }
+
+        const rect =
+          timeline.getBoundingClientRect();
+
+        let x =
+          event.clientX -
+          rect.left;
+
+        x =
+          Math.max(
+            0,
+            Math.min(
+              rect.width,
+              x
+            )
+          );
+
+        const percent =
+          x / rect.width;
+
+        const time =
+          percent *
+          videoDuration;
+
+        if (
+          dragging === "start"
+        ) {
+
+          startTime =
+            Math.min(
+              time,
+              endTime - 0.001
             );
 
-            return;
-
         }
 
+        if (
+          dragging === "end"
+        ) {
 
-        await openVideo(file);
-
-    }
-);
-
-
-/* =========================================================
-   GLOBAL DROP PREVENT
-   ========================================================= */
-
-document.addEventListener(
-    "dragover",
-    event => {
-
-        event.preventDefault();
-
-    }
-);
-
-
-document.addEventListener(
-    "drop",
-    event => {
-
-        if(
-            !upload.contains(
-                event.target
-            )
-        ){
-
-            event.preventDefault();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   FORMAT TIME
-   ========================================================= */
-
-function formatTime(
-    seconds
-){
-
-    if(
-        !Number.isFinite(
-            seconds
-        ) ||
-        seconds < 0
-    ){
-
-        return "00:00";
-
-    }
-
-
-    const hours =
-        Math.floor(
-            seconds / 3600
-        );
-
-
-    const minutes =
-        Math.floor(
-            (
-                seconds %
-                3600
-            ) / 60
-        );
-
-
-    const secs =
-        Math.floor(
-            seconds % 60
-        );
-
-
-    const h =
-        String(
-            hours
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    const m =
-        String(
-            minutes
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    const s =
-        String(
-            secs
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    if(hours > 0){
-
-        return (
-            h +
-            ":" +
-            m +
-            ":" +
-            s
-        );
-
-    }
-
-
-    return (
-        m +
-        ":" +
-        s
-    );
-
-}
-
-
-/* =========================================================
-   FORMAT BYTES
-   ========================================================= */
-
-function formatBytes(
-    bytes
-){
-
-    if(
-        !Number.isFinite(
-            bytes
-        ) ||
-        bytes <= 0
-    ){
-
-        return "0 B";
-
-    }
-
-
-    const units = [
-        "B",
-        "KB",
-        "MB",
-        "GB",
-        "TB"
-    ];
-
-
-    const index =
-        Math.min(
-            Math.floor(
-                Math.log(bytes) /
-                Math.log(1024)
-            ),
-            units.length - 1
-        );
-
-
-    const value =
-        bytes /
-        Math.pow(
-            1024,
-            index
-        );
-
-
-    return (
-        value.toFixed(
-            index === 0
-            ? 0
-            : 2
-        ) +
-        " " +
-        units[index]
-    );
-
-}
-
-
-/* =========================================================
-   OUTPUT NAME
-   ========================================================= */
-
-function makeOutputName(
-    name
-){
-
-    const dot =
-        name.lastIndexOf(".");
-
-
-    let base =
-        name;
-
-
-    if(dot > 0){
-
-        base =
-            name.substring(
-                0,
-                dot
+          endTime =
+            Math.max(
+              time,
+              startTime + 0.001
             );
 
-    }
+        }
 
+        updateDisplays();
 
-    return (
-        base +
-        "-NOVA-CUT.mp4"
+      }
     );
 
-}
 
+    document.addEventListener(
+      "pointerup",
+      function() {
 
-/* =========================================================
-   SLEEP
-   ========================================================= */
+        dragging = null;
 
-function sleep(
-    ms
-){
-
-    return new Promise(
-        resolve =>
-            setTimeout(
-                resolve,
-                ms
-            )
+      }
     );
 
-}
 
+    /*
+      ============================================================
+      الضغط على الخط الزمني
+      ============================================================
+    */
 
-/* =========================================================
-   INITIAL STATE
-   ========================================================= */
+    timeline.addEventListener(
+      "click",
+      function(event) {
 
-console.log(
-    "NOVA CUT V2 loaded."
-);
-
-
-</script>
-
-
-</body>
-
-</html>
-```
+        if (
+          event.target
